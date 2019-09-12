@@ -1,0 +1,10 @@
+version: '2.3'
+
+services:
+    shell:
+        image: tensorflow/tensorflow:latest-gpu-py3
+        runtime: nvidia
+        volumes:
+            - .:/bert
+
+
