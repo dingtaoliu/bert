@@ -19,6 +19,8 @@ from __future__ import division
 from __future__ import print_function
 
 import os
+#os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+import datetime
 import modeling
 import optimization
 import tensorflow as tf
@@ -177,11 +179,15 @@ def model_fn_builder(bert_config, init_checkpoint, learning_rate,
       train_op = optimization.create_optimizer(
           total_loss, learning_rate, num_train_steps, num_warmup_steps, use_tpu)
 
+
       output_spec = tf.contrib.tpu.TPUEstimatorSpec(
           mode=mode,
           loss=total_loss,
           train_op=train_op,
-          scaffold_fn=scaffold_fn)
+          scaffold_fn=scaffold_fn,
+          eval_metrics=(test_metric_fn, [1])
+          )
+      tf.summary.scalar('test', 1)
     elif mode == tf.estimator.ModeKeys.EVAL:
 
       def metric_fn(masked_lm_example_loss, masked_lm_log_probs, masked_lm_ids,
@@ -236,6 +242,8 @@ def model_fn_builder(bert_config, init_checkpoint, learning_rate,
 
   return model_fn
 
+def test_metric_fn(metric):
+  return {'test': tf.compat.v1.metrics.mean(metric)}
 
 def get_masked_lm_output(bert_config, input_tensor, output_weights, positions,
                          label_ids, label_weights):
@@ -403,9 +411,10 @@ def _decode_record(record, name_to_features):
   return example
 
 
+
 def main(_):
   tf.logging.set_verbosity(tf.logging.INFO)
-
+  #tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
   if not FLAGS.do_train and not FLAGS.do_eval:
     raise ValueError("At least one of `do_train` or `do_eval` must be True.")
 
@@ -416,6 +425,10 @@ def main(_):
   input_files = []
   for input_pattern in FLAGS.input_file.split(","):
     input_files.extend(tf.gfile.Glob(input_pattern))
+  print('########################################################\n')
+  print(input_files)
+  print(FLAGS.max_seq_length)
+  print('########################################################\n')
 
   tf.logging.info("*** Input Files ***")
   for input_file in input_files:
@@ -454,6 +467,8 @@ def main(_):
       config=run_config,
       train_batch_size=FLAGS.train_batch_size,
       eval_batch_size=FLAGS.eval_batch_size)
+
+  #estimator = tf.contrib.estimator.add_metrics(estimator, test_metric_fun)
 
   if FLAGS.do_train:
     tf.logging.info("***** Running training *****")

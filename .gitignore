@@ -114,3 +114,22 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Custom stuff
+
+.vscode/
+bert_model/
+metrics.txt
+pretrain.bash
+pretrain_metrics.txt
+pretrain_output/
+pretraining_data/
+proc_dataset.txt
+profile
+profile.nsight-cuprof-report
+run_pretraining/
+shards/
+subdataset.txt
+tokenizer.model
+tokenizer.vocab
+vocab.txt
